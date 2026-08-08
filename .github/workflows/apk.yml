@@ -56,7 +56,6 @@ jobs:
           body: |
             自动镜像自 [maxjivi05/PS3Native](https://github.com/maxjivi05/PS3Native)
             
-            - 对应 run: https://github.com/maxjivi05/PS3Native/actions/runs/${{ steps.info.outputs.run_id }}
             - 提交: `${{ steps.info.outputs.sha }}`
             - 时间: ${{ steps.info.outputs.updated }}
 
