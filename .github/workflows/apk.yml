@@ -26,6 +26,19 @@ jobs:
           echo "updated=$UPDATED" >> $GITHUB_OUTPUT
           echo "sha=$HEAD_SHA" >> $GITHUB_OUTPUT
 
+          # 计算相对时间
+          RELATIVE=$(date -u -d "$UPDATED" +%s | awk -v now="$(date -u +%s)" '
+            {
+              diff = now - $1;
+              if (diff < 60) print "刚刚";
+              else if (diff < 3600) print "约 " int(diff/60) " 分钟前";
+              else if (diff < 86400) print "约 " int(diff/3600) " 小时前";
+              else print "约 " int(diff/86400) " 天前";
+            }
+          ')
+          echo "relative=$RELATIVE" >> $GITHUB_OUTPUT
+
+          # 拉上游最近 5 条 commit
           CHANGELOG=$(curl -s "https://api.github.com/repos/maxjivi05/PS3Native/commits?author=maxjivi05&per_page=5" \
             -H "Accept: application/vnd.github+json" \
             | jq -r '.[] | "- [`\(.sha[0:7])`](\(.html_url)) \(.commit.message | split("\n")[0])"')
@@ -54,7 +67,7 @@ jobs:
             自动镜像自 [maxjivi05/PS3Native](https://github.com/maxjivi05/PS3Native)
 
             - 提交: `${{ steps.info.outputs.sha }}`
-            - 时间: ${{ steps.info.outputs.updated }}
+            - 更新: ${{ steps.info.outputs.relative }}
 
             ## 最近更新
             ${{ steps.info.outputs.changelog }}
