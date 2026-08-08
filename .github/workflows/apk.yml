@@ -2,8 +2,8 @@ name: 自动镜像 PS3Native APK
 
 on:
   schedule:
-    - cron: '0 */6 * * *'   # 每 6 小时检查一次
-  workflow_dispatch:         # 也可以手动点
+    - cron: '0 * * * *'   # 每小时检查一次
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -15,7 +15,6 @@ jobs:
       - name: 获取原仓库最新成功 run 信息
         id: info
         run: |
-          # 查最新成功的 Android APK run
           RUN=$(curl -s "https://api.github.com/repos/maxjivi05/PS3Native/actions/workflows/android.yml/runs?status=success&per_page=1" \
             -H "Accept: application/vnd.github+json")
           
