@@ -19,15 +19,15 @@ jobs:
             -H "Accept: application/vnd.github+json")
 
           RUN_ID=$(echo "$RUN" | jq -r '.workflow_runs[0].id')
-          UPDATED=$(echo "$RUN" | jq -r '.workflow_runs[0].updated_at')
+          STARTED=$(echo "$RUN" | jq -r '.workflow_runs[0].run_started_at')
           HEAD_SHA=$(echo "$RUN" | jq -r '.workflow_runs[0].head_sha' | cut -c1-7)
 
           echo "run_id=$RUN_ID" >> $GITHUB_OUTPUT
-          echo "updated=$UPDATED" >> $GITHUB_OUTPUT
+          echo "started=$STARTED" >> $GITHUB_OUTPUT
           echo "sha=$HEAD_SHA" >> $GITHUB_OUTPUT
 
-          # 计算相对时间
-          RELATIVE=$(date -u -d "$UPDATED" +%s | awk -v now="$(date -u +%s)" '
+          # 用 run_started_at 算相对时间，更接近原仓库显示
+          RELATIVE=$(date -u -d "$STARTED" +%s | awk -v now="$(date -u +%s)" '
             {
               diff = now - $1;
               if (diff < 60) print "刚刚";
