@@ -2,7 +2,7 @@ name: 自动镜像 PS3Native APK
 
 on:
   schedule:
-    - cron: '0 * * * *'   # 每小时检查一次
+    - cron: '0 * * * *'      # 每小时整点执行
   workflow_dispatch:
 
 permissions:
@@ -27,7 +27,7 @@ jobs:
           echo "sha=$HEAD_SHA" >> $GITHUB_OUTPUT
           echo "最新成功 run: $RUN_ID ($HEAD_SHA) @ $UPDATED"
 
-      - name: 下载对应 Artifact
+      - name: 下载 standard
         uses: dawidd6/action-download-artifact@v6
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
@@ -36,6 +36,36 @@ jobs:
           name: ps3native-standard-debug
           path: apk
 
+      - name: 下载 antutu
+        uses: dawidd6/action-download-artifact@v6
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          repo: maxjivi05/PS3Native
+          run_id: ${{ steps.info.outputs.run_id }}
+          name: ps3native-antutu-debug
+          path: apk
+
+      - name: 下载 ludashi
+        uses: dawidd6/action-download-artifact@v6
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          repo: maxjivi05/PS3Native
+          run_id: ${{ steps.info.outputs.run_id }}
+          name: ps3native-ludashi-debug
+          path: apk
+
+      - name: 下载 pubg
+        uses: dawidd6/action-download-artifact@v6
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          repo: maxjivi05/PS3Native
+          run_id: ${{ steps.info.outputs.run_id }}
+          name: ps3native-pubg-debug
+          path: apk
+
+      - name: 查看下载到的文件
+        run: find apk -type f -name "*.apk" -ls
+
       - name: 发布 / 更新 Release
         uses: softprops/action-gh-release@v2
         with:
@@ -43,8 +73,8 @@ jobs:
           name: PS3Native ${{ steps.info.outputs.sha }}
           body: |
             自动镜像自 [maxjivi05/PS3Native](https://github.com/maxjivi05/PS3Native)
-            
-            - 对应 run: https://github.com/maxjivi05/PS3Native/actions/runs/${{ steps.info.outputs.run_id }}
+
+            - 对应 run: `${{ steps.info.outputs.run_id }}`
             - 提交: `${{ steps.info.outputs.sha }}`
             - 时间: ${{ steps.info.outputs.updated }}
           files: apk/**/*.apk
