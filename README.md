@@ -1,50 +1,30 @@
 # PS3Native APK 自动镜像
 
-[PS3Native](https://github.com/maxjivi05/PS3Native) 是基于 [RPCS3](https://github.com/RPCS3/rpcs3) 的 **PlayStation 3 emulator and debugger / PlayStation 3 模拟器与调试器** 的 Android 移植分支。
+自动从 [maxjivi05/PS3Native](https://github.com/maxjivi05/PS3Native) 拉取最新的 Android APK 构建产物，并发布到本仓库的 Release 中。
 
-上游原仓库描述为：
+## 工作原理
 
-> PlayStation 3 emulator and debugger
+- 每小时自动检查上游仓库的最新成功构建
+- 下载对应的 APK artifact（`ps3native-standard-debug`）
+- 发布/更新到本仓库的 `latest` Release 标签下
+- 也支持手动触发（Actions → Run workflow）
 
-相关链接：
+## 使用方式
 
-- 上游仓库：https://github.com/maxjivi05/PS3Native
-- RPCS3 原项目：https://github.com/RPCS3/rpcs3
-- 官方网站：https://rpcs3.net/
-- 上游更新日志：https://github.com/maxjivi05/PS3Native/commits?author=maxjivi05
+### 下载最新 APK
 
-本仓库 **不开发模拟器本体**，也不参与编译源码，只自动从上游拉取最新成功构建的 Android APK，并发布/更新到本仓库的 `latest` Release，方便直接下载安装。
+1. 进入本仓库的 [Releases](https://github.com/dreamboyn81/PS3Native/releases) 页面
+2. 找到名为 **latest** 的 Release
+3. 下载里面的 `.apk` 文件即可
 
-## 下载最新 APK
+### 手动触发构建
 
-前往 [Releases](https://github.com/dreamboyn81/PS3Native/releases) 页面，下载 `latest` Release 中的 `*.apk` 文件即可。
+1. 进入 **Actions** 标签页
+2. 左侧选择 **"自动镜像 PS3Native APK"**
+3. 点击 **Run workflow** → 绿色按钮确认
 
-每次上游有新成功构建时，`latest` Release 会自动更新，并附带最近提交记录和完整更新日志链接。
+## 注意事项
 
-## 自动更新机制
-
-- 触发方式：GitHub Actions 每小时检查一次，也支持手动触发
-- 工作流程：检查上游 `android.yml` 最近一次成功构建 → 下载 APK Artifact → 发布/覆盖 `latest` Release
-- 配置文件：`.github/workflows/apk.yml`
-
-## 发布页内容
-
-每次发布的 `latest` Release 会包含：
-
-- 对应上游 Actions Run 链接
-- 当前上游短 commit SHA
-- 最近几次上游提交摘要
-- 完整更新日志链接：  
-  https://github.com/maxjivi05/PS3Native/commits?author=maxjivi05
-
-## 授权与声明
-
-上游项目及本镜像分发均遵循原项目授权。
-
-- 上游 License：GNU General Public License v2.0
-- 模拟器代码、构建产物与版权归属均来自上游 [maxjivi05/PS3Native](https://github.com/maxjivi05/PS3Native) / [RPCS3/rpcs3](https://github.com/RPCS3/rpcs3)
-- 本仓库仅做 APK 镜像与分发，不声称拥有模拟器本体的开发版权
-
-## 温馨提示
-
-PS3 模拟器仅可用于运行您合法拥有并备份的游戏或自制程序。请遵守当地法律法规及游戏版权相关协议。
+- 本仓库仅作镜像转发，不修改上游代码
+- 上游仓库：[maxjivi05/PS3Native](https://github.com/maxjivi05/PS3Native)
+- 如有问题请优先在上游仓库反馈
