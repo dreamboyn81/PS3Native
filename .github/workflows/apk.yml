@@ -1,32 +1,71 @@
-- name: 下载全部 Artifact
-  uses: dawidd6/action-download-artifact@v6
-  with:
-    github_token: ${{ secrets.GITHUB_TOKEN }}
-    repo: maxjivi05/PS3Native
-    run_id: ${{ steps.info.outputs.run_id }}
-    path: apk
+name: 自动镜像 PS3Native APK
 
-- name: 整理 APK
-  run: |
-    mkdir -p out
-    find apk -name "*.apk" -exec cp {} out/ \;
+on:
+  schedule:
+    - cron: '0 * * * *'
+  workflow_dispatch:
 
-- name: 发布 / 更新 Release
-  uses: softprops/action-gh-release@v2
-  with:
-    tag_name: latest
-    name: PS3Native ${{ steps.info.outputs.sha }}
-    body: |
-      自动镜像自 [maxjivi05/PS3Native](https://github.com/maxjivi05/PS3Native)
+permissions:
+  contents: write
 
-      - 提交: `${{ steps.info.outputs.sha }}`
-      - Run: ${{ steps.info.outputs.run_url }}
+jobs:
+  mirror:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 获取上游最新成功 run 信息与更新日志
+        id: info
+        run: |
+          RUN=$(curl -s "https://api.github.com/repos/maxjivi05/PS3Native/actions/workflows/android.yml/runs?status=success&per_page=1" \
+            -H "Accept: application/vnd.github+json")
 
-      ## 最近更新
-      ${{ steps.info.outputs.changelog }}
+          RUN_ID=$(echo "$RUN" | jq -r '.workflow_runs[0].id')
+          HEAD_SHA=$(echo "$RUN" | jq -r '.workflow_runs[0].head_sha' | cut -c1-7)
 
-      [查看完整更新日志 »](https://github.com/maxjivi05/PS3Native/commits?author=maxjivi05)
-    files: out/*.apk
-    make_latest: true
-  env:
-    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          echo "run_id=$RUN_ID" >> $GITHUB_OUTPUT
+          echo "sha=$HEAD_SHA" >> $GITHUB_OUTPUT
+
+          RUN_URL="https://github.com/maxjivi05/PS3Native/actions/runs/$RUN_ID"
+          echo "run_url=$RUN_URL" >> $GITHUB_OUTPUT
+
+          CHANGELOG=$(curl -s "https://api.github.com/repos/maxjivi05/PS3Native/commits?author=maxjivi05&per_page=5" \
+            -H "Accept: application/vnd.github+json" \
+            | jq -r '.[] | "- [`\(.sha[0:7])`](\(.html_url)) \(.commit.message | split("\n")[0])"')
+
+          {
+            echo "changelog<<EOF"
+            echo "$CHANGELOG"
+            echo "EOF"
+          } >> $GITHUB_OUTPUT
+
+      - name: 下载全部 Artifact
+        uses: dawidd6/action-download-artifact@v6
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          repo: maxjivi05/PS3Native
+          run_id: ${{ steps.info.outputs.run_id }}
+          path: apk
+
+      - name: 整理 APK
+        run: |
+          mkdir -p out
+          find apk -name "*.apk" -exec cp {} out/ \;
+
+      - name: 发布 / 更新 Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: latest
+          name: PS3Native ${{ steps.info.outputs.sha }}
+          body: |
+            自动镜像自 [maxjivi05/PS3Native](https://github.com/maxjivi05/PS3Native)
+
+            - 提交: `${{ steps.info.outputs.sha }}`
+            - Run: ${{ steps.info.outputs.run_url }}
+
+            ## 最近更新
+            ${{ steps.info.outputs.changelog }}
+
+            [查看完整更新日志 »](https://github.com/maxjivi05/PS3Native/commits?author=maxjivi05)
+          files: out/*.apk
+          make_latest: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
