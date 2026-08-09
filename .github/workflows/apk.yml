@@ -1,24 +1,32 @@
-name: 清理旧 Actions 运行记录
+- name: 下载全部 Artifact
+  uses: dawidd6/action-download-artifact@v6
+  with:
+    github_token: ${{ secrets.GITHUB_TOKEN }}
+    repo: maxjivi05/PS3Native
+    run_id: ${{ steps.info.outputs.run_id }}
+    path: apk
 
-on:
-  schedule:
-    - cron: '30 0 * * *'
-  workflow_dispatch:
+- name: 整理 APK
+  run: |
+    mkdir -p out
+    find apk -name "*.apk" -exec cp {} out/ \;
 
-permissions:
-  actions: write
+- name: 发布 / 更新 Release
+  uses: softprops/action-gh-release@v2
+  with:
+    tag_name: latest
+    name: PS3Native ${{ steps.info.outputs.sha }}
+    body: |
+      自动镜像自 [maxjivi05/PS3Native](https://github.com/maxjivi05/PS3Native)
 
-jobs:
-  cleanup:
-    runs-on: ubuntu-latest
-    steps:
-      - name: 保留最近 5 条，其余删除
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          REPO: ${{ github.repository }}
-        run: |
-          ids=$(gh run list --repo "$REPO" --workflow apk.yml --limit 1000 --json databaseId,createdAt \
-            | jq -r 'sort_by(.createdAt) | reverse | .[5:] | .[].databaseId')
-          for id in $ids; do
-            gh run delete "$id" --repo "$REPO"
-          done
+      - 提交: `${{ steps.info.outputs.sha }}`
+      - Run: ${{ steps.info.outputs.run_url }}
+
+      ## 最近更新
+      ${{ steps.info.outputs.changelog }}
+
+      [查看完整更新日志 »](https://github.com/maxjivi05/PS3Native/commits?author=maxjivi05)
+    files: out/*.apk
+    make_latest: true
+  env:
+    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
